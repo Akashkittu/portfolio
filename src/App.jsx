@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   motion,
   AnimatePresence,
@@ -30,7 +30,6 @@ import {
   TerminalSquare,
   Trophy,
   Workflow,
-  Zap,
   ScanSearch,
   Clock3,
   CheckCircle2,
@@ -321,6 +320,64 @@ function Chip({ children, className = "" }) {
 
 function Glow({ className }) {
   return <div className={`absolute rounded-full blur-3xl ${className}`} />;
+}
+
+function SectionShell({ id, tone = "violet", className = "", children }) {
+  const tones = {
+    violet: {
+      border: "border-violet-400/15",
+      topLine: "via-violet-400/60",
+      sideGlow: "bg-violet-400/70",
+      orb: "bg-violet-500/10",
+    },
+    cyan: {
+      border: "border-cyan-400/15",
+      topLine: "via-cyan-400/60",
+      sideGlow: "bg-cyan-400/70",
+      orb: "bg-cyan-500/10",
+    },
+    indigo: {
+      border: "border-indigo-400/15",
+      topLine: "via-indigo-400/60",
+      sideGlow: "bg-indigo-400/70",
+      orb: "bg-indigo-500/10",
+    },
+    amber: {
+      border: "border-amber-400/15",
+      topLine: "via-amber-400/60",
+      sideGlow: "bg-amber-400/70",
+      orb: "bg-amber-500/10",
+    },
+    emerald: {
+      border: "border-emerald-400/15",
+      topLine: "via-emerald-400/60",
+      sideGlow: "bg-emerald-400/70",
+      orb: "bg-emerald-500/10",
+    },
+    fuchsia: {
+      border: "border-fuchsia-400/15",
+      topLine: "via-fuchsia-400/60",
+      sideGlow: "bg-fuchsia-400/70",
+      orb: "bg-fuchsia-500/10",
+    },
+  };
+
+  const theme = tones[tone] || tones.violet;
+
+  return (
+    <section id={id} className={`mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-24 ${className}`}>
+      <div
+        className={`relative overflow-hidden rounded-[34px] border bg-white/[0.03] shadow-[0_18px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl ${theme.border}`}
+      >
+        <div
+          className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${theme.topLine} to-transparent`}
+        />
+        <div className={`absolute left-0 top-10 h-24 w-[3px] rounded-r-full ${theme.sideGlow}`} />
+        <div className={`absolute right-8 top-8 h-28 w-28 rounded-full blur-3xl ${theme.orb}`} />
+        <div className="relative p-6 md:p-8 lg:p-10">{children}</div>
+      </div>
+    </section>
+  );
 }
 
 function MiniStat({ label, value, glow }) {
@@ -626,7 +683,7 @@ function HeroSection({ mounted, reduceMotion, heroDots }) {
 
 function AboutSection() {
   return (
-    <section id="about" className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-24">
+    <SectionShell id="about" tone="violet">
       <SectionHeader
         badge="About Me"
         title="Who I am and what I like building."
@@ -668,7 +725,7 @@ function AboutSection() {
           );
         })}
       </div>
-    </section>
+    </SectionShell>
   );
 }
 
@@ -710,7 +767,7 @@ function HowIWorkSection({ reduceMotion }) {
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-16">
+    <SectionShell tone="cyan" className="py-10 lg:py-16">
       <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
           <SectionHeader
@@ -855,21 +912,21 @@ function HowIWorkSection({ reduceMotion }) {
           </div>
         </motion.div>
       </div>
-    </section>
+    </SectionShell>
   );
 }
 
-function ProjectCard({ project, index }) {
+function ProjectCard({ project, index, shouldAnimate }) {
   const meta = projectTypeMeta[project.type] || { icon: Rocket, tone: project.accent };
   const Icon = meta.icon;
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 34 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.55, delay: index * 0.06 }}
-      whileHover={{ y: -6 }}
+      initial={shouldAnimate ? { opacity: 0, y: 34 } : false}
+      whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+      viewport={shouldAnimate ? { once: true, amount: 0.18 } : undefined}
+      transition={shouldAnimate ? { duration: 0.55, delay: index * 0.06 } : undefined}
+      whileHover={shouldAnimate ? { y: -6 } : undefined}
       className="group relative overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-[1px] shadow-[0_20px_70px_rgba(0,0,0,0.22)]"
     >
       <div className="relative h-full rounded-[31px] bg-[#070913]/95 p-7 backdrop-blur-2xl">
@@ -894,7 +951,7 @@ function ProjectCard({ project, index }) {
             </div>
 
             <motion.div
-              whileHover={{ rotate: 10, scale: 1.04 }}
+              whileHover={shouldAnimate ? { rotate: 10, scale: 1.04 } : undefined}
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border border-white/10 bg-black/30 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
             >
               <Icon className="h-6 w-6 text-violet-300" />
@@ -970,7 +1027,7 @@ function ProjectCard({ project, index }) {
   );
 }
 
-function ProjectsSection({ activeTab, setActiveTab, filteredProjects }) {
+function ProjectsSection({ activeTab, setActiveTab, filteredProjects, reduceMotion }) {
   const tabCounts = useMemo(
     () =>
       projectTabs.reduce((acc, tab) => {
@@ -981,7 +1038,7 @@ function ProjectsSection({ activeTab, setActiveTab, filteredProjects }) {
   );
 
   return (
-    <section id="projects" className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-24">
+    <SectionShell id="projects" tone="indigo">
       <SectionHeader
         badge="Projects"
         title="Projects that show how I think and how I build."
@@ -1020,25 +1077,25 @@ function ProjectsSection({ activeTab, setActiveTab, filteredProjects }) {
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.25 }}
             >
-              <ProjectCard project={project} index={index} />
+              <ProjectCard project={project} index={index} shouldAnimate={!reduceMotion} />
             </motion.div>
           ))}
         </AnimatePresence>
       </motion.div>
-    </section>
+    </SectionShell>
   );
 }
 
-function ExperienceCard({ item, index }) {
+function ExperienceCard({ item, index, shouldAnimate }) {
   const Icon = item.icon;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 26 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.55, delay: index * 0.06 }}
-      whileHover={{ y: -4 }}
+      initial={shouldAnimate ? { opacity: 0, y: 26 } : false}
+      whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+      viewport={shouldAnimate ? { once: true, amount: 0.2 } : undefined}
+      transition={shouldAnimate ? { duration: 0.55, delay: index * 0.06 } : undefined}
+      whileHover={shouldAnimate ? { y: -4 } : undefined}
       className="group relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-[1px]"
     >
       <div className="relative rounded-[29px] bg-[#070913]/95 p-6 backdrop-blur-2xl md:p-7">
@@ -1099,9 +1156,9 @@ function ExperienceCard({ item, index }) {
   );
 }
 
-function ExperienceSection() {
+function ExperienceSection({ reduceMotion }) {
   return (
-    <section id="experience" className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-24">
+    <SectionShell id="experience" tone="amber">
       <SectionHeader
         badge="Experience"
         title="Internships where I learned by building real things."
@@ -1116,19 +1173,19 @@ function ExperienceSection() {
             <div key={`${item.role}-${item.company}`} className="relative">
               <div className="absolute left-4 top-10 hidden h-5 w-5 rounded-full border border-violet-300/50 bg-[#0a0d17] shadow-[0_0_0_6px_rgba(139,92,246,0.08)] md:block" />
               <div className="md:pl-14">
-                <ExperienceCard item={item} index={index} />
+                <ExperienceCard item={item} index={index} shouldAnimate={!reduceMotion} />
               </div>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }
 
 function SkillsSection() {
   return (
-    <section id="skills" className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-24">
+    <SectionShell id="skills" tone="emerald">
       <SectionHeader
         badge="Skills"
         title="Tools and areas I use the most."
@@ -1164,14 +1221,14 @@ function SkillsSection() {
           );
         })}
       </div>
-    </section>
+    </SectionShell>
   );
 }
 
 function ContactSection() {
   return (
-    <section id="contact" className="mx-auto max-w-7xl px-6 pb-20 pt-10 lg:px-10 lg:pb-28">
-      <div className="rounded-[34px] border border-white/10 bg-white/[0.04] backdrop-blur-2xl">
+    <SectionShell id="contact" tone="fuchsia" className="pb-20 pt-10 lg:pb-28">
+      <div className="rounded-[30px] border border-white/10 bg-black/10 backdrop-blur-2xl">
         <div className="grid gap-8 p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs uppercase tracking-[0.24em] text-zinc-300">
@@ -1226,7 +1283,7 @@ function ContactSection() {
           </div>
         </div>
       </div>
-    </section>
+    </SectionShell>
   );
 }
 
@@ -1241,6 +1298,8 @@ export default function App() {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const pointerFrame = useRef(0);
+  const pointerPoint = useRef({ x: 0, y: 0 });
 
   const spotlight = useMotionTemplate`radial-gradient(520px circle at ${mouseX}px ${mouseY}px, rgba(124,58,237,0.11), transparent 42%)`;
 
@@ -1281,8 +1340,10 @@ export default function App() {
     restDelta: 0.001,
   });
 
+  const enableInteractiveEffects = showCursor && !reduceMotion;
+
   const heroDots = useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
+    return Array.from({ length: 14 }, (_, i) => ({
       id: i,
       left: `${4 + ((i * 19) % 92)}%`,
       top: `${7 + ((i * 17) % 80)}%`,
@@ -1299,8 +1360,28 @@ export default function App() {
 
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => setLoading(false), 900);
+    const timer = setTimeout(() => setLoading(false), 650);
     return () => clearTimeout(timer);
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e) => {
+      pointerPoint.current = { x: e.clientX, y: e.clientY };
+
+      if (pointerFrame.current) return;
+
+      pointerFrame.current = window.requestAnimationFrame(() => {
+        mouseX.set(pointerPoint.current.x);
+        mouseY.set(pointerPoint.current.y);
+        pointerFrame.current = 0;
+      });
+    },
+    [mouseX, mouseY]
+  );
+
+  const handleMouseOver = useCallback((e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    setCursorActive(Boolean(target && target.closest("a, button, [data-cursor='true']")));
   }, []);
 
   useEffect(() => {
@@ -1309,23 +1390,15 @@ export default function App() {
     const mediaQuery = window.matchMedia("(pointer: fine)");
 
     const updatePointerMode = () => {
-      setShowCursor(mediaQuery.matches);
-    };
-
-    const handleMouseMove = (e) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
-    };
-
-    const handleMouseOver = (e) => {
-      const target = e.target instanceof Element ? e.target : null;
-      setCursorActive(Boolean(target && target.closest("a, button, [data-cursor='true']")));
+      setShowCursor(mediaQuery.matches && !reduceMotion);
     };
 
     updatePointerMode();
 
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("mouseover", handleMouseOver);
+    if (mediaQuery.matches && !reduceMotion) {
+      window.addEventListener("mousemove", handleMouseMove, { passive: true });
+      window.addEventListener("mouseover", handleMouseOver);
+    }
 
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener("change", updatePointerMode);
@@ -1337,17 +1410,22 @@ export default function App() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseover", handleMouseOver);
 
+      if (pointerFrame.current) {
+        window.cancelAnimationFrame(pointerFrame.current);
+        pointerFrame.current = 0;
+      }
+
       if (mediaQuery.addEventListener) {
         mediaQuery.removeEventListener("change", updatePointerMode);
       } else {
         mediaQuery.removeListener(updatePointerMode);
       }
     };
-  }, [mouseX, mouseY]);
+  }, [reduceMotion, handleMouseMove, handleMouseOver]);
 
   return (
-    <div className={`min-h-screen bg-[#04050a] text-white ${showCursor ? "cursor-none" : ""}`}>
-      {showCursor && (
+    <div className={`min-h-screen bg-[#04050a] text-white ${enableInteractiveEffects ? "cursor-none" : ""}`}>
+      {enableInteractiveEffects && (
         <>
           <motion.div
             animate={{
@@ -1369,7 +1447,11 @@ export default function App() {
         </>
       )}
 
-      <motion.div className="pointer-events-none fixed inset-0 z-0" style={{ background: spotlight }} />
+      {enableInteractiveEffects ? (
+        <motion.div className="pointer-events-none fixed inset-0 z-0" style={{ background: spotlight }} />
+      ) : (
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.10),transparent_35%)]" />
+      )}
 
       <motion.div
         className="fixed left-0 top-0 z-[110] h-1 w-full origin-left bg-gradient-to-r from-violet-400 via-sky-400 to-fuchsia-400"
@@ -1421,9 +1503,10 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             filteredProjects={filteredProjects}
+            reduceMotion={reduceMotion}
           />
 
-          <ExperienceSection />
+          <ExperienceSection reduceMotion={reduceMotion} />
 
           <SkillsSection />
 
